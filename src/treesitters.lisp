@@ -40,34 +40,39 @@
 
      Returns the relative path to the source repository.
 "
-  (with-message-buffer-stream (*standard-output*)
+  (with-message-buffer-stream (messages)
     (let* ((lang-str (string-downcase (symbol-name lang)))
            (repo (language-treesitter-repo lang))
            (local-repo-pathname (join-directory cache-pathname lang-str))
            (local-repo-namestring (pathname-utils:native-namestring local-repo-pathname)))
       (if (uiop:directory-exists-p local-repo-pathname)
-          (format t "Directory ~a already exists. Refusing to clone.~%" local-repo-pathname)
+          (lem:message "Directory ~a already exists. Refusing to clone.~%" local-repo-pathname)
           (uiop:run-program `("git" "clone" ,repo ,local-repo-namestring) 
-                            :error-output *standard-output* 
-                            :output *standard-output*))
+                            :error-output messages 
+                            :output messages))
       local-repo-pathname)))
+
 
 
 
 (defun compile-lang (lang cache-pathname)
   "compiles treesitter language object and copies it to *lem-treesitter-library*"
-  (with-message-buffer-stream (*error-output*)
+  (with-message-buffer-stream (messages)
       (let* ((lang-str (string-downcase (symbol-name lang)))
              (local-repo-pathname (join-directory cache-pathname lang-str))
              (input-files (language-treesitter-sourcefiles lang))
              (output-file (uiop:merge-pathnames* *lem-treesitter-library* 
                                                  (format nil "libtree-sitter-~a.so" lang-str)))
-             (input-files-absolute (mapcar (lambda (file) 
-                                             (join-pathnames local-repo-pathname file))
-                                           input-files)))
-        (lem:message "~a -> ~a~%" input-files-absolute output-file)
-        (cffi-toolchain:link-shared-library output-file input-files-absolute)
+             (input-filenames-absolute (mapcar (lambda (file) 
+                                             (pathname-utils:native-namestring
+                                              (join-pathnames local-repo-pathname file)))
+                                           input-files))
+             (output-filename-absolute (pathname-utils:native-namestring output-file))
+             (compile-command `("cc" "-shared" "-o" ,output-filename-absolute ,@input-filenames-absolute)))
+        (lem:message "~{~a ~}" compile-command)
+        (uiop:run-program compile-command :error-output messages :output messages)
         (lem:message "treesitter for ~a installed to ~a" lang output-file))))
+
 
 (defun install-lang (lang)
   "Attempts to fetch and install the treesitter for a particular language"
