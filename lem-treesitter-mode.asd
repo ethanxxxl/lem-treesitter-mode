@@ -5,5 +5,6 @@
                              (:file "languages")
                              (:file "filesystem")
                              (:file "treesitters")
-                             (:file "buffer")))
+                             (:file "buffer")
+                             (:file "commands")))
                (:file "lem-treesitter-mode")))
