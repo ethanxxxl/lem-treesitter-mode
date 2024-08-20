@@ -4,7 +4,8 @@
         :lem-treesitter-mode/utils
         :lem-treesitter-mode/buffer)
   (:local-nicknames (:ts :treesitter))
-  (:export))
+  (:export
+   #:treesitter-mode/diagnostics))
 
 (in-package :lem-treesitter-mode/commands)
 
