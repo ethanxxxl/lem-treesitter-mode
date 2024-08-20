@@ -10,19 +10,8 @@
    #:*treesitters*
    #:*parsers*))
 
-; (defpackage :lem-treesitter-mode
-;   (:use :cl :lem))
 (in-package :lem-treesitter-mode/treesitters)
 
-; this file is the entrypoint to the treesitter package
-
-; 1. Loading a treesitter
-;   - fetching & compiling a treesitter lib if it's not found locally
-;   - loading a treesitter lib from a particular directory (lem cache?)
-;     - do this on-demand when we enter a particular dir?
-; 
-; How does neovim do this?
-; - mason (no, this is for LSPs)
 
 
 (defun fetch-source (lang cache-pathname)

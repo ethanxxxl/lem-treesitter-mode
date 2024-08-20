@@ -153,5 +153,4 @@
       (when attribute
         (lem:move-to-bytes start (1+ (ts:node-start-byte node)))
         (lem:move-to-bytes end (1+ (ts:node-end-byte node)))
-        ;(format t "~&applying ~a to range ~a -> ~a" attribute start end )
         (lem:put-text-property start end :attribute attribute)))))

@@ -1,5 +1,5 @@
 (defsystem "lem-treesitter-mode"
-  :depends-on ("cl-treesitter" "cffi-toolchain" "pathname-utils")
+  :depends-on ("cl-treesitter" "pathname-utils")
   :components ((:module "src"
                 :components ((:file "utils")
                              (:file "languages")
