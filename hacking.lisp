@@ -15,9 +15,19 @@
 (lem-treesitter-mode/treesitters:load-treesitter :c)
 
 ; you need to have opened "example.cs" for this to work
+(lem:find-file "small-example.cs")
+(defparameter *b* (lem:get-buffer "small-example.cs"))
 (defparameter *b* (lem:get-buffer "example.cs"))
 (lem-treesitter-mode/buffer:parse-buffer *b* :language :c_sharp)
+(defparameter *parser* (lem-treesitter-mode/parser:make-treesitter-syntax-parser :language :c_sharp))
 ; trace ts-node-delete
+(defun scan (parser buffer)
+  (let* ((treesitter-parser (lem-treesitter-mode/parser:get-treesitter-parser parser))
+         (text (lem:buffer-text buffer))
+         (tree (ts:parser-parse-string treesitter-parser text)))
+    (lem-treesitter-mode/parser:walk-tree tree text)))
+
+(scan *parser* *b*)
 
 ;what is a point in this context
 ; (ts:cursor-goto-first-child *cursor*)
@@ -74,6 +84,7 @@
 
 (lem-treesitter-mode/buffer:node-text-at-point *b*)
 
+(define-key lem-vi-mode:*normal-keymap* "Leader t Space" 'lem-treesitter-mode/commands:treesitter-mode/diagnostics)
 
 ; idea to push current node into the diagnostic buffer every input event
 (defun handle-event (event)

@@ -126,17 +126,20 @@
 (defun has-alphanum (string)
   (some #'alpha-char-p string))
 
+(lem:syntax-variable-attribute)
+
 (defun node-type-to-attribute (node)
+  "todo, more intelligent node determinations based on parents"
   (let ((node-type (ts:node-type node)))
     (alexandria:switch (node-type :test #'equal)
-      ("identifier" 'syntax-variable-attribute)
-      ("comment" 'syntax-comment-attribute)
-      ("predefined_type" 'syntax-type-attribute)
-      ("string_literal" 'syntax-string-attribute)
-      ("integer_literal" 'syntax-constant-attribute)
-      ("real_literal" 'syntax-constant-attribute)
-      ("boolean_literal" 'syntax-constant-attribute)
-      (t (when (has-alphanum node-type) 'syntax-keyword-attribute)))))
+      ("identifier" 'lem:syntax-variable-attribute)
+      ("comment" 'lem:syntax-comment-attribute)
+      ("predefined_type" 'lem:syntax-type-attribute)
+      ("string_literal" 'lem:syntax-string-attribute)
+      ("integer_literal" 'lem:syntax-constant-attribute)
+      ("real_literal" 'lem:syntax-constant-attribute)
+      ("boolean_literal" 'lem:syntax-constant-attribute)
+      (t (when (has-alphanum node-type) 'lem:syntax-keyword-attribute)))))
 
 
 (defun put-node-attribute (node start end)
@@ -148,7 +151,7 @@
                    (end end))
     (let ((attribute (node-type-to-attribute node)))
       (when attribute
-       (lem:move-to-bytes start (ts:node-start-byte node))
-       (lem:move-to-bytes end (ts:node-end-byte node))
+        (lem:move-to-bytes start (1+ (ts:node-start-byte node)))
+        (lem:move-to-bytes end (1+ (ts:node-end-byte node)))
         ;(format t "~&applying ~a to range ~a -> ~a" attribute start end )
         (lem:put-text-property start end :attribute attribute)))))
