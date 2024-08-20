@@ -3,12 +3,15 @@
         :lem-treesitter-mode/languages
         :lem-treesitter-mode/filesystem
         :lem-treesitter-mode/treesitters
-        :lem-treesitter-mode/buffer)
+        :lem-treesitter-mode/buffer
+        :lem-treesitter-mode/parser)
   (:export 
    #:setup
    ; re-export from filesystem.lisp
    #:*lem-cache-dir*
-   #:*lem-treesitter-library*))
+   #:*lem-treesitter-library*
+   #:make-treesitter-syntax-parser
+   #:load-treesitter))
 
 (in-package :lem-treesitter-mode)
 

@@ -55,7 +55,7 @@
 
 (defmethod lem/buffer/internal::%syntax-scan-region ((parser syntax-parser) start end)
   (lem:with-point ((start start)
-               (end end)) 
+                   (end end)) 
     (let* ((treesitter-parser (get-treesitter-parser parser))
            (buffer (lem:point-buffer start))
            (text (lem:buffer-text buffer))
@@ -75,61 +75,58 @@
 
 (defun walk-tree (tree buffer)
   "walks a treesitter tree, applying syntax to the nodes therein"
-  (declare (optimize debug))
-  (with-diagnostic-buffer-stream (*standard-output*)
-    (lem:with-point ((start (lem:buffer-start-point buffer))
-                     (end (lem:buffer-end-point buffer)))
-      (let ((text (lem:buffer-text buffer)))
-        (defun walker (cursor)
-          (let ((node (ts:cursor-node cursor)))
-            ;(debug-node node text)
-            (cond 
-              ((named-leaf-p node) (put-node-attribute node start end))
-              ((leaf-p node) (put-node-attribute node start end))
-              (t
-               (ts:cursor-goto-first-child cursor)
-               (walker cursor)
-               (loop while (ts:cursor-goto-next-sibling cursor)
-                     do (walker cursor))
-               (ts:cursor-goto-parent cursor)))))
-        (let ((cursor (ts:make-cursor (ts:tree-root-node tree))))
-          (walker cursor)
-          (format *standard-output* "~& walked buffer ~a" buffer))))))
+  (lem:with-point ((start (lem:buffer-start-point buffer))
+                   (end (lem:buffer-end-point buffer)))
+    (let ((text (lem:buffer-text buffer)))
+      (defun walker (cursor)
+        (let ((node (ts:cursor-node cursor)))
+          ;(debug-node node text)
+          (cond 
+            ((named-leaf-p node) (put-node-attribute node start end))
+            ((leaf-p node) (put-node-attribute node start end))
+            (t
+             (ts:cursor-goto-first-child cursor)
+             (walker cursor)
+             (loop while (ts:cursor-goto-next-sibling cursor)
+                   do (walker cursor))
+             (ts:cursor-goto-parent cursor)))))
+      (let ((cursor (ts:make-cursor (ts:tree-root-node tree))))
+        (walker cursor)))))
 
-  ;(defun debug-node (node text)
-  ;  (format t "Node has ~:[no name~:;~a~]" (ts:node-name node text)))
-  ;(defun debug-node (node text)
-  ;  (format t "~&Node has type: ~s" (ts:node-type node))
-  ;  (format t "~&Node is named?: ~s" (ts:node-named-p node))
-  ;  ;(format t "~&Node starts on line/column: ~a" (ts:node-start-point node))
-  ;  ;(format t "~&Node ends on line/column: ~a" (ts:node-end-point node))
-  ;  (format t "~&Node begins with text: ~s" (str:substring 0 100 (ts:node-text node text))))
+;(defun debug-node (node text)
+;  (format t "Node has ~:[no name~:;~a~]" (ts:node-name node text)))
+;(defun debug-node (node text)
+;  (format t "~&Node has type: ~s" (ts:node-type node))
+;  (format t "~&Node is named?: ~s" (ts:node-named-p node))
+;  ;(format t "~&Node starts on line/column: ~a" (ts:node-start-point node))
+;  ;(format t "~&Node ends on line/column: ~a" (ts:node-end-point node))
+;  (format t "~&Node begins with text: ~s" (str:substring 0 100 (ts:node-text node text))))
 
-  ;(format t "~&Node ends with text: ~s" (str:substring (- (length text) 10) nil (ts:node-text node text)))
+;(format t "~&Node ends with text: ~s" (str:substring (- (length text) 10) nil (ts:node-text node text)))
   
 
-  ;identifiers might be modifiable based on their parents,
-  ; e.g. `class Program`, `using System`
+;identifiers might be modifiable based on their parents,
+; e.g. `class Program`, `using System`
 
-  ; leaves we seem to care about:
-  ; identifier
-  ; predefined_type
-  ; comment
-  ; string_literal
-  ; integer_literal
-  ; real_literal
-  ; boolean literal
-  ; (*_literal)
-  ; using,class,static
-  ; "(", ")", "\"", "\'", ";", these are all pieces of syntax
-  ; (lem:put-text-property .. .)
+; leaves we seem to care about:
+; identifier
+; predefined_type
+; comment
+; string_literal
+; integer_literal
+; real_literal
+; boolean literal
+; (*_literal)
+; using,class,static
+; "(", ")", "\"", "\'", ";", these are all pieces of syntax
+; (lem:put-text-property .. .)
 (defun has-alphanum (string)
   (some #'alpha-char-p string))
 
-(lem:syntax-variable-attribute)
-
 (defun node-type-to-attribute (node)
-  "todo, more intelligent node determinations based on parents"
+  "Gets a lem syntax attribute based on a node's type
+   - [ ] - more intelligent node determinations based on node parents?
+   - [ ] - respect things like a keyword list or paren list for a particular syntax table"
   (let ((node-type (ts:node-type node)))
     (alexandria:switch (node-type :test #'equal)
       ("identifier" 'lem:syntax-variable-attribute)

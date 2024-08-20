@@ -3,20 +3,19 @@
 (in-package :lem-user)
 
 (lem-treesitter-mode:setup)
-
-(lem-treesitter-mode/treesitters:load-treesitter :c_sharp)
-
+(lem-treesitter-mode:load-treesitter :c_sharp)
 (defvar *csharp-syntax-table*
-  (let ((table (lem:make-syntax-table
+  (let ((table (make-syntax-table
                 :space-chars '(#\space #\tab #\newline)
                 ;:symbol-chars '(#\_)
-                :paren-pairs '((#\( . #\))
+                :paren-pairs '((#\< . #\>)
+                               (#\( . #\))
                                (#\{ . #\})
                                (#\[ . #\]))
                 :string-quote-chars '(#\" #\')
                 :line-comment-string "//"
                 :block-comment-pairs '(("/*" . "*/")))))
-    (lem:set-syntax-parser table (lem-treesitter-mode/parser:make-treesitter-syntax-parser :c_sharp))
+    (set-syntax-parser table (lem-treesitter-mode:make-treesitter-syntax-parser :c_sharp))
     table))
 
 (define-major-mode csharp-mode lem/language-mode:language-mode
