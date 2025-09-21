@@ -41,29 +41,20 @@
 
 
 (defun %treesitter-explorer (ts-node source-buffer output-point)
-
-  ;; lem doesn't currently update the point in between calls to insert-string,
-  ;; so we need to move output-point to the end of the buffer after every call
-  ;; manually.
   (when ts-node
-    (lem:buffer-end output-point)
     (lem:insert-string output-point "(")
     
-    (lem:buffer-end output-point)
     (make-ts-node-button ts-node source-buffer output-point)
 
     (when (< 0 (treesitter:node-child-count ts-node))
-      (lem:buffer-end output-point)
       (lem:insert-string output-point (format nil "~%")))
     
     (dolist (n (treesitter:node-children ts-node))
       (%treesitter-explorer n source-buffer output-point))
     
-    (lem:buffer-end output-point)
     (when (< 0 (treesitter:node-child-count ts-node))
       (lem:insert-string output-point (format nil "~%")))
     
-    (lem:buffer-end output-point)
     (lem:insert-string output-point (format nil ")"))))
 
 (defun treesitter-explorer (n s)
@@ -72,8 +63,9 @@
         (source-buffer s))
     (lem:erase-buffer diagnostic)
 
-    (lem:with-point ((end (lem:buffer-point diagnostic)))
-      (lem:buffer-end end)
+    ;; it is important to specify :LEFT-INSERTING here, otherwise inserted text will
+    ;; not be appended to the end of the buffer; rather it will be prepended.
+    (lem:with-point ((end (lem:buffer-end-point diagnostic) :left-inserting))
       (%treesitter-explorer ts-node source-buffer end))))
 
 
@@ -81,50 +73,16 @@
 ;;; HACKING BELOW
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(lem-treesitter-mode:setup)
-(lem-treesitter-mode/treesitters:load-treesitter :c_sharp)
+;(lem-treesitter-mode:setup)
+;(lem-treesitter-mode/treesitters:load-treesitter :c_sharp)
 
 ;; make sure you open small.cs first.
-(defparameter *b* (lem:get-buffer "small.cs"))
-(lem-treesitter-mode/buffer:parse-buffer *b* :language :c_sharp)
+;(defparameter *b* (lem:get-buffer "small.cs"))
+;(lem-treesitter-mode/buffer:parse-buffer *b* :language :c_sharp)
 
-(defparameter *root-node* (treesitter:tree-root-node
-                           (lem:buffer-value *b* :tree)))
+;(defparameter *root-node* (treesitter:tree-root-node
+;                           (lem:buffer-value *b* :tree)))
 
-(progn 
-  (lem:insert-string (lem:current-point) "(")
-  (make-ts-node-button *root-node* *b* (lem:current-point)))
+;(treesitter-explorer *root-node* *b*)
 
-(make-ts-node-button (nth 0 (treesitter:node-children *root-node*)) *b* (lem:current-point))
-
-(make-ts-node-button (nth 1 (treesitter:node-children *root-node*)) *b* (lem:current-point))
-
-(treesitter-explorer *root-node* *b*)
-
-(defparameter *diag* (lem:make-buffer "*TSDiagnostic*"))
-(lem:erase-buffer *diag*)
-
-(lem:insert-string (lem:buffer-point *diag*) (format nil "blab~%"))
-(lem:insert-string (lem:buffer-point *diag*) (format nil "blob~%"))
-
-(lem:insert-string (lem:buffer-point *diag*) (format nil "test1~%"))
-(lem:insert-string (lem:buffer-point *diag*) (format nil "test2~%"))
-(lem:insert-string (lem:buffer-point *diag*) (format nil "test3~%"))
-(lem:insert-string (lem:buffer-point *diag*) (format nil "test4~%"))
-(lem:insert-string (lem:buffer-point *diag*) (format nil "test5~%"))
-
-(step (lem:with-point ((end (lem:buffer-point *diag*)))
-        (lem:buffer-end end)
-        (lem:insert-string end (format nil "test1~%"))
-        (lem:insert-string end (format nil "test2~%"))
-        (lem:insert-string end (format nil "test3~%"))
-        (lem:insert-string end (format nil "test4~%"))
-        (lem:insert-string end (format nil "test5~%"))))0
-
-(step) (lem:with-point ((end (lem:buffer-point *diag*)))
-         (lem:buffer-end end)
-         (loop for i from 1 to 5
-               do (lem:insert-string end (format nil "test~A~%" i)))
-         )
-
-(lem:buffer-point *diag*)
+;(defparameter *diag* (lem:make-buffer "*TSDiagnostic*"))
