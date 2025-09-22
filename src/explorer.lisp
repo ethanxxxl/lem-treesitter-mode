@@ -3,11 +3,13 @@
         :lem-treesitter-mode/treesitters
         :lem-treesitter-mode/utils
         :lem-treesitter-mode/buffer
-        :treesitter)
-  (:local-nicknames (:ts :treesitter))
-  (:export nil))
+        :treesitter))
 
 (in-package :lem-treesitter-mode/explorer)
+
+; (lem:define-major-mode treesitter/explorer-mode ()
+;     (:name "Treesitter Explorer"
+;      :description "Displays the output of a treesitter-parse of a given buffer"))
 
 (defun highlight-ts-node (ts-node source-buffer)
   "temporarily highlights (for 1000ms) the part of the buffer referenced by the TS-NODE"
